@@ -1,23 +1,25 @@
-// 1. FIREBASE CONFIGURATION (Apne Firebase Console se replace karein)
+// 1. FIREBASE INITIALIZATION WITH YOUR REAL KEYS
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyAq9vIJtCIqVl52Pak59DpAgaBhTumtOaI",
   authDomain: "assent-public-school.firebaseapp.com",
+  databaseURL: "https://assent-public-school-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "assent-public-school",
-  storageBucket: "assent-public-school.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "YOUR_APP_ID"
+  storageBucket: "assent-public-school.firebasestorage.app",
+  messagingSenderId: "747815981128",
+  appId: "1:747815981128:web:6e0d9ad492a952e624c87d",
+  measurementId: "G-ZV3Z8LBW1E"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// CRITICAL: 2G/Slow network ke liye Offline Persistence Enable karna
+// 2G/Slow network ke liye Offline Persistence Enable karna
 db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
   if (err.code === 'failed-precondition') {
-    console.warn("Multiple tabs open, offline storage single tab me chalegi.");
+    console.warn("Multiple tabs open, offline persistence single tab me chalegi.");
   } else if (err.code === 'unimplemented') {
-    console.warn("Browser offline storage support nahi karta.");
+    console.warn("Browser offline persistence support nahi karta.");
   }
 });
 
@@ -30,8 +32,18 @@ const tableBody = document.getElementById('studentTableBody');
 const syncStatus = document.getElementById('syncStatus');
 
 // Network indicator tracking
-window.addEventListener('online', () => { syncStatus.innerText = "🟢 Online (Synced)"; syncStatus.style.background = "#dcfce7"; });
-window.addEventListener('offline', () => { syncStatus.innerText = "🟡 Offline Mode (Local Cache Active)"; syncStatus.style.background = "#fef9c3"; });
+window.addEventListener('online', () => { 
+  if (syncStatus) {
+    syncStatus.innerText = "🟢 Online (Synced)"; 
+    syncStatus.style.background = "#dcfce7"; 
+  }
+});
+window.addEventListener('offline', () => { 
+  if (syncStatus) {
+    syncStatus.innerText = "🟡 Offline Mode (Local Cache Active)"; 
+    syncStatus.style.background = "#fef9c3"; 
+  }
+});
 
 // 2. QUICK ADD STUDENT (Auto-Roll Assignment Logic)
 addForm.addEventListener('submit', async (e) => {
@@ -59,19 +71,18 @@ addForm.addEventListener('submit', async (e) => {
       name: name,
       class: selectedClass,
       roll_no: nextRoll,
-      profile_completed: false, // Baki details student apne app se bharega
+      profile_completed: false,
       created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     studentNameInput.value = '';
-    // Agar filter class alag ho to usko match kar do taaki bacha turant dikhe
     if (filterClassSelect.value !== selectedClass) {
       filterClassSelect.value = selectedClass;
       loadStudentsRealtime(selectedClass);
     }
   } catch (error) {
     console.error("Student add karne me error:", error);
-    alert("Bache ko jodne me dikkat aayi. Kripya check karein.");
+    alert("Bache ko jodne me dikkat aayi. Kripya Firestore Rules aur Internet check karein.");
   }
 });
 
@@ -138,7 +149,7 @@ window.deleteAndShiftRoll = async function(docId, studentClass, deletedRoll, stu
       batch.update(doc.ref, { roll_no: currentRoll - 1 });
     });
 
-    // 4. Atomic execution (Network weak ho tab bhi phone me turant execute hoga)
+    // 4. Atomic execution
     await batch.commit();
   } catch (error) {
     console.error("Delete aur shift karne me dikkat aayi:", error);
