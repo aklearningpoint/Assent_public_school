@@ -2,182 +2,105 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AK Learning Point</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assent Public School - Student Master</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --bg: #f8fafc;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: #1e293b; padding: 16px; }
+    .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--primary); padding-bottom: 12px; margin-bottom: 20px; }
+    .header h2 { color: var(--primary); font-size: 1.25rem; }
+    .net-badge { font-size: 0.8rem; background: #e0e7ff; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+    
+    .quick-form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; background: #eff6ff; padding: 14px; border-radius: 6px; margin-bottom: 20px; align-items: end; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    select, input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; }
+    button.btn-add { background: var(--primary); color: #fff; border: none; padding: 9px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button.btn-add:hover { opacity: 0.9; }
+
+    .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    th { background: #f1f5f9; color: #475569; }
+    .badge-roll { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
+    .btn-del { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .btn-del:hover { background: var(--danger); color: #fff; }
+    .empty { text-align: center; color: #94a3b8; padding: 20px; }
+  </style>
+
+  <!-- Firebase App & Firestore SDKs (v9 Compat for Clean & Fast Setup) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-  <!-- Top App Header -->
-  <header class="app-header">
-    <div class="header-left">
-      <img id="appLogo" src="https://via.placeholder.com/40" alt="Logo" class="app-logo">
-      <span class="app-title">AK Learning Point</span>
-    </div>
-    <button class="drawer-btn" onclick="toggleDrawer()"><i class="fas fa-bars"></i></button>
-  </header>
-
-  <!-- Right Drawer Menu -->
-  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()">
-    <div class="drawer-content" onclick="event.stopPropagation()">
-      <div class="drawer-header">
-        <h4>Menu</h4>
-        <button class="close-btn" onclick="toggleDrawer()" style="color:white;"><i class="fas fa-times"></i></button>
-      </div>
-      <ul class="drawer-menu">
-        <li class="drawer-item" onclick="openAdminPortal()"><i class="fas fa-user-shield"></i> Admin Portal</li>
-        <li class="drawer-item" onclick="openTeacherPortal()"><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</li>
-        <li class="drawer-item" onclick="openSchoolPortal()"><i class="fas fa-school"></i> Assent Public School</li>
-        <li class="drawer-item" onclick="openOmrPrintModal()"><i class="fas fa-dot-circle" style="color:#d97706;"></i> Print OMR Sheet (100 Q)</li>
-        <li class="drawer-item" onclick="triggerSmartShare()"><i class="fab fa-whatsapp" style="color:#25d366;"></i> WhatsApp Share</li>
-      </ul>
-    </div>
+<div class="container">
+  <div class="header">
+    <h2>Assent Public School - Student Directory</h2>
+    <span class="net-badge" id="syncStatus">🟢 Live Synced</span>
   </div>
 
-  <!-- Main Scrollable Home View -->
-  <main class="main-container" id="homeView">
-    
-    <!-- 1. Quizzes Tab -->
-    <div class="section-card" onclick="openBoardSelectModal()">
-      <div class="section-left">
-        <div class="section-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fas fa-puzzle-piece"></i></div>
-        <div class="section-info">
-          <h3>Quizzes</h3>
-          <p>CBSE & BSEB Practice Tests</p>
-        </div>
-      </div>
-      <i class="fas fa-chevron-right text-muted"></i>
+  <!-- Quick Add: Sirf Class aur Name -->
+  <form id="addStudentForm" class="quick-form">
+    <div class="form-group">
+      <label>Class</label>
+      <select id="studentClass" required>
+        <option value="Play">Play</option>
+        <option value="Nursery">Nursery</option>
+        <option value="LKG">LKG</option>
+        <option value="UKG">UKG</option>
+        <option value="Class 1">Class 1</option>
+        <option value="Class 2">Class 2</option>
+        <option value="Class 3">Class 3</option>
+        <option value="Class 4">Class 4</option>
+        <option value="Class 5" selected>Class 5</option>
+      </select>
     </div>
-
-    <!-- 2. Result Tab -->
-    <div class="section-card" onclick="openResultLookupModal()">
-      <div class="section-left">
-        <div class="section-icon" style="background:#fef3c7; color:#d97706;"><i class="fas fa-poll"></i></div>
-        <div class="section-info">
-          <h3>Result</h3>
-          <p>Check Attempted Scorecards</p>
-        </div>
-      </div>
-      <i class="fas fa-chevron-right text-muted"></i>
+    <div class="form-group">
+      <label>Student Full Name</label>
+      <input type="text" id="studentName" placeholder="e.g. Aman Kumar" required autocomplete="off">
     </div>
+    <button type="submit" class="btn-add">➕ Add Student</button>
+  </form>
 
-    <!-- 3. Rewarding Quiz Tab -->
-    <div class="section-card" onclick="openRewardingQuizzes()">
-      <div class="section-left">
-        <div class="section-icon" style="background:#fee2e2; color:#dc2626;"><i class="fas fa-trophy"></i></div>
-        <div class="section-info">
-          <h3>Rewarding Quiz</h3>
-          <p>Special Prize Challenges</p>
-        </div>
-      </div>
-      <i class="fas fa-chevron-right text-muted"></i>
-    </div>
-
-    <!-- 4. Online Coaching Tab -->
-    <div class="section-card" onclick="openOnlineCoachingModal()">
-      <div class="section-left">
-        <div class="section-icon" style="background:#ede9fe; color:#7c3aed;"><i class="fas fa-video"></i></div>
-        <div class="section-info">
-          <h3>Online Coaching</h3>
-          <p>Tuition & General Video Classes</p>
-        </div>
-      </div>
-      <i class="fas fa-chevron-right text-muted"></i>
-    </div>
-
-    <!-- 5. Study Material Tab -->
-    <div class="section-card" onclick="openStudyMaterialModal()">
-      <div class="section-left">
-        <div class="section-icon" style="background:#ecfdf5; color:#059669;"><i class="fas fa-book-open"></i></div>
-        <div class="section-info">
-          <h3>Study Material</h3>
-          <p>Flip-Book Notes, PDFs & PPTs</p>
-        </div>
-      </div>
-      <i class="fas fa-chevron-right text-muted"></i>
-    </div>
-
-    <!-- 6. Commercial Ads Space with Direct WhatsApp Link -->
-    <div class="commercial-ads-container">
-      <div id="googleAdUnit">
-        <small style="color:var(--text-muted); font-size: 0.75rem;">SPONSORED ADVERTISEMENT</small>
-        <p style="margin: 8px 0; font-weight: 600;">Grow Your Business With Us!</p>
-      </div>
-      <a href="https://api.whatsapp.com/send?phone=918826011682&text=I%20am%20interested%20in%20advertising%20on%20your%20platform" target="_blank" class="ads-cta-btn">
-        <i class="fab fa-whatsapp"></i> Post Your Ad Here
-      </a>
-    </div>
-
-    <!-- 7. App-Based Ads Space -->
-    <div class="app-ads-flip-box">
-      <h3 id="appAdTitle">✨ Daily Practice Makes Perfect!</h3>
-      <p id="appAdQuote" style="font-size:0.85rem; margin-top:4px; opacity:0.9;">"Gyan ki nayi shuruat, har vidyarthi ke vikas ke saath!"</p>
-      <button class="join-community-btn" onclick="openCommunityModal()">
-        <i class="fab fa-whatsapp"></i> Join WhatsApp Community
-      </button>
-    </div>
-
-  </main>
-
-  <!-- Community Modal -->
-  <div class="modal-overlay" id="communityModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Join WhatsApp Community</h3>
-        <button class="close-btn" onclick="closeCommunityModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <form id="leadForm" onsubmit="handleLeadSubmit(event)">
-        <div class="form-group">
-          <label>Student Full Name</label>
-          <input type="text" id="leadName" required placeholder="Enter student name">
-        </div>
-        <div class="form-group">
-          <label>State</label>
-          <input type="text" id="leadState" required placeholder="e.g. Bihar">
-        </div>
-        <div class="form-group">
-          <label>WhatsApp Number</label>
-          <input type="tel" id="leadMobile" required pattern="[0-9]{10}" placeholder="10-digit number">
-        </div>
-        <div class="form-group">
-          <label>Current Class</label>
-          <select id="leadClass" required>
-            <option value="">Select Class</option>
-            <option value="Play & Nur">Play & Nursery</option>
-            <option value="LKG">LKG</option>
-            <option value="UKG">UKG</option>
-            <option value="Class 1">Class 1</option>
-            <option value="Class 2">Class 2</option>
-            <option value="Class 3">Class 3</option>
-            <option value="Class 4">Class 4</option>
-            <option value="Class 5">Class 5</option>
-            <option value="Class 6">Class 6</option>
-            <option value="Class 7">Class 7</option>
-            <option value="Class 8">Class 8</option>
-            <option value="Class 9">Class 9</option>
-            <option value="Class 10">Class 10</option>
-            <option value="Class 12">Class 12</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-primary" style="background:#25d366;">
-          <i class="fab fa-whatsapp"></i> Submit & Join Group
-        </button>
-      </form>
-    </div>
+  <!-- Filter & Class List -->
+  <div class="filter-bar">
+    <label><b>View Class List:</b></label>
+    <select id="filterClass" style="width: auto;">
+      <option value="Play">Play</option>
+      <option value="Nursery">Nursery</option>
+      <option value="LKG">LKG</option>
+      <option value="UKG">UKG</option>
+      <option value="Class 1">Class 1</option>
+      <option value="Class 2">Class 2</option>
+      <option value="Class 3">Class 3</option>
+      <option value="Class 4">Class 4</option>
+      <option value="Class 5" selected>Class 5</option>
+    </select>
   </div>
 
-  <div id="dynamicView"></div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 70px;">Roll No</th>
+        <th>Student Name</th>
+        <th style="width: 140px;">Status</th>
+        <th style="width: 90px; text-align: center;">Action</th>
+      </tr>
+    </thead>
+    <tbody id="studentTableBody">
+      <!-- Data dynamic render hoga -->
+    </tbody>
+  </table>
+</div>
 
-  <!-- Scripts -->
-  <script src="js/api.js"></script>
-  <script src="js/security.js"></script>
-  <script src="js/quiz.js"></script>
-  <script src="js/content-modules.js"></script>
-  <script src="js/admin-portal.js"></script>
-  <!-- Badal kar aisa likhein -->
-<script src="js/teacher-portal.js?v=999"></script>
-  <script src="js/school-portal.js"></script>
-  <script src="js/app.js"></script>
+<script src="tab1_students.js"></script>
 </body>
 </html>
