@@ -1,29 +1,20 @@
-// 1. FIREBASE INITIALIZATION WITH YOUR REAL KEYS
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAq9vIJtCIqVl52Pak59DpAgaBhTumtOaI",
   authDomain: "assent-public-school.firebaseapp.com",
-  databaseURL: "https://assent-public-school-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "assent-public-school",
-  storageBucket: "assent-public-school.firebasestorage.app",
+  storageBucket: "assent-public-school.appspot.com",
   messagingSenderId: "747815981128",
-  appId: "1:747815981128:web:6e0d9ad492a952e624c87d",
-  measurementId: "G-ZV3Z8LBW1E"
+  appId: "1:747815981128:web:6e0d9ad492a952e624c87d"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialize
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
-// 2G/Slow network ke liye Offline Persistence Enable karna
-db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn("Multiple tabs open, offline persistence single tab me chalegi.");
-  } else if (err.code === 'unimplemented') {
-    console.warn("Browser offline persistence support nahi karta.");
-  }
-});
-
-// DOM Elements
+// DOM References
 const addForm = document.getElementById('addStudentForm');
 const studentClassInput = document.getElementById('studentClass');
 const studentNameInput = document.getElementById('studentName');
@@ -31,21 +22,7 @@ const filterClassSelect = document.getElementById('filterClass');
 const tableBody = document.getElementById('studentTableBody');
 const syncStatus = document.getElementById('syncStatus');
 
-// Network indicator tracking
-window.addEventListener('online', () => { 
-  if (syncStatus) {
-    syncStatus.innerText = "🟢 Online (Synced)"; 
-    syncStatus.style.background = "#dcfce7"; 
-  }
-});
-window.addEventListener('offline', () => { 
-  if (syncStatus) {
-    syncStatus.innerText = "🟡 Offline Mode (Local Cache Active)"; 
-    syncStatus.style.background = "#fef9c3"; 
-  }
-});
-
-// 2. QUICK ADD STUDENT (Auto-Roll Assignment Logic)
+// 1. ADD STUDENT (Query bina index error ke calculate hogi)
 addForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const selectedClass = studentClassInput.value;
@@ -53,20 +30,23 @@ addForm.addEventListener('submit', async (e) => {
 
   if (!name) return;
 
+  syncStatus.innerText = "⏳ Saving...";
+
   try {
-    // Current class ke sabse bade roll number ko find karna
     const snapshot = await db.collection("students")
       .where("class", "==", selectedClass)
-      .orderBy("roll_no", "desc")
-      .limit(1)
       .get();
 
     let nextRoll = 1;
     if (!snapshot.empty) {
-      nextRoll = snapshot.docs[0].data().roll_no + 1;
+      let maxRoll = 0;
+      snapshot.forEach(doc => {
+        const r = doc.data().roll_no || 0;
+        if (r > maxRoll) maxRoll = r;
+      });
+      nextRoll = maxRoll + 1;
     }
 
-    // New student record save karna
     await db.collection("students").add({
       name: name,
       class: selectedClass,
@@ -76,17 +56,20 @@ addForm.addEventListener('submit', async (e) => {
     });
 
     studentNameInput.value = '';
+    syncStatus.innerText = "🟢 Student Added";
+    
     if (filterClassSelect.value !== selectedClass) {
       filterClassSelect.value = selectedClass;
       loadStudentsRealtime(selectedClass);
     }
   } catch (error) {
-    console.error("Student add karne me error:", error);
-    alert("Bache ko jodne me dikkat aayi. Kripya Firestore Rules aur Internet check karein.");
+    console.error("Firestore Add Error:", error);
+    syncStatus.innerText = "❌ Error Occurred";
+    alert("Error: " + error.message);
   }
 });
 
-// 3. REALTIME LISTENER WITH LOCAL CACHE (Super-Fast Rendering)
+// 2. REALTIME LISTENER (Memory-level sorting taaki query fail na ho)
 let unsubscribeCurrentClass = null;
 
 function loadStudentsRealtime(selectedClass) {
@@ -96,7 +79,6 @@ function loadStudentsRealtime(selectedClass) {
 
   unsubscribeCurrentClass = db.collection("students")
     .where("class", "==", selectedClass)
-    .orderBy("roll_no", "asc")
     .onSnapshot((snapshot) => {
       tableBody.innerHTML = '';
 
@@ -105,62 +87,65 @@ function loadStudentsRealtime(selectedClass) {
         return;
       }
 
-      snapshot.docs.forEach((doc) => {
-        const student = doc.data();
+      let studentsList = [];
+      snapshot.forEach((doc) => {
+        studentsList.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Roll number ke mutabiq ascending sort
+      studentsList.sort((a, b) => a.roll_no - b.roll_no);
+
+      studentsList.forEach((student) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><span class="badge-roll">${student.roll_no}</span></td>
           <td><b>${student.name}</b></td>
           <td><span style="font-size: 0.8rem; color: ${student.profile_completed ? 'green' : '#ea580c'};">
-            ${student.profile_completed ? '● Completed' : '○ Self-Fill Pending'}
+            ${student.profile_completed ? '● Completed' : '○ Pending'}
           </span></td>
           <td style="text-align: center;">
-            <button class="btn-del" onclick="deleteAndShiftRoll('${doc.id}', '${student.class}', ${student.roll_no}, '${student.name}')">🗑 Delete</button>
+            <button class="btn-del" onclick="deleteAndShiftRoll('${student.id}', '${student.class}', ${student.roll_no}, '${student.name}')">🗑 Delete</button>
           </td>
         `;
         tableBody.appendChild(tr);
       });
+      syncStatus.innerText = "🟢 Realtime Connected";
     }, (error) => {
-      console.error("Firestore read error:", error);
+      console.error("Snapshot error:", error);
+      syncStatus.innerText = "❌ Connection Error";
+      tableBody.innerHTML = `<tr><td colspan="4" class="empty" style="color:red;">Error: ${error.message}</td></tr>`;
     });
 }
 
-// 4. ATOMIC AUTO-SHIFT ON DELETE (Ek Bacha Hatega, Niche Wale Turant Shift Honge)
+// 3. DELETE & AUTO-SHIFT
 window.deleteAndShiftRoll = async function(docId, studentClass, deletedRoll, studentName) {
-  const confirmAction = confirm(`Kya aap sach me ${studentName} (Roll: ${deletedRoll}) ko delete karna chahte hain?\nIske baad iske niche wale sabhi students ka Roll Number automatic 1 number upar shift ho jayega.`);
+  const confirmAction = confirm(`${studentName} (Roll: ${deletedRoll}) ko delete karein?\nIske baad ke roll numbers automatic shift ho jayenge.`);
   if (!confirmAction) return;
 
   try {
     const batch = db.batch();
+    batch.delete(db.collection("students").doc(docId));
 
-    // 1. Selected student ko delete karo
-    const deleteRef = db.collection("students").doc(docId);
-    batch.delete(deleteRef);
-
-    // 2. Uske baad wale (Roll > deletedRoll) sabhi bachon ko fetch karo
-    const subsequentStudents = await db.collection("students")
+    const subsequent = await db.collection("students")
       .where("class", "==", studentClass)
-      .where("roll_no", ">", deletedRoll)
       .get();
 
-    // 3. Sabka roll number -1 update karo
-    subsequentStudents.docs.forEach((doc) => {
-      const currentRoll = doc.data().roll_no;
-      batch.update(doc.ref, { roll_no: currentRoll - 1 });
+    subsequent.forEach((doc) => {
+      const data = doc.data();
+      if (data.roll_no > deletedRoll) {
+        batch.update(doc.ref, { roll_no: data.roll_no - 1 });
+      }
     });
 
-    // 4. Atomic execution
     await batch.commit();
   } catch (error) {
-    console.error("Delete aur shift karne me dikkat aayi:", error);
-    alert("Delete operation fail hua. Kripya dobara koshish karein.");
+    alert("Delete error: " + error.message);
   }
 };
 
-// Filter change handler
 filterClassSelect.addEventListener('change', (e) => {
   loadStudentsRealtime(e.target.value);
 });
 
-// Initial Load
+// Start listening
 loadStudentsRealtime(filterClassSelect.value);
