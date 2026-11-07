@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Assent Public School - Quick Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f1f5f9; }
+    .box { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    input, select, button { padding: 10px; margin: 6px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
+    button { background: #1e3a8a; color: white; border: none; cursor: pointer; font-weight: bold; }
+    #logBox { margin-top: 15px; padding: 12px; background: #0f172a; color: #38bdf8; font-family: monospace; border-radius: 4px; min-height: 80px; white-space: pre-wrap; }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="box">
+  <h3>APS - Direct Firestore Connection Test</h3>
+  
+  <label>Class:</label>
+  <select id="tClass">
+    <option value="Class 5">Class 5</option>
+    <option value="Class 1">Class 1</option>
+  </select>
+
+  <label>Student Name:</label>
+  <input type="text" id="tName" placeholder="Enter student name (e.g. AMAN)">
+
+  <button id="btnSave">Save to Firebase Cloud</button>
+
+  <h4>Live System Log:</h4>
+  <div id="logBox">Initializing Firebase...</div>
+</div>
+
+<script>
+  const logBox = document.getElementById('logBox');
+  function log(msg) {
+    logBox.innerText += "\n" + msg;
+  }
+
+  // Exact Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAq9vIJtCIqVl52Pak59DpAgaBhTumtOaI",
+    authDomain: "assent-public-school.firebaseapp.com",
+    projectId: "assent-public-school",
+    storageBucket: "assent-public-school.appspot.com",
+    messagingSenderId: "747815981128",
+    appId: "1:747815981128:web:6e0d9ad492a952e624c87d"
+  };
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    log("Firebase Initialized Successfully.");
+
+    document.getElementById('btnSave').addEventListener('click', async () => {
+      const sName = document.getElementById('tName').value.trim();
+      const sClass = document.getElementById('tClass').value;
+
+      if (!sName) {
+        alert("Naam likhiye!");
+        return;
+      }
+
+      log("Sending data to Cloud Firestore...");
+
+      try {
+        const docRef = await db.collection("students").add({
+          name: sName.toUpperCase(),
+          class: sClass,
+          roll_no: 1,
+          added_at: new Date()
+        });
+
+        log("SUCCESS! Document ID: " + docRef.id);
+        alert("Bacha successfully Firebase me save ho gaya! ID: " + docRef.id);
+      } catch (err) {
+        log("ERROR OCCURRED: " + err.message);
+        console.error(err);
+      }
+    });
+
+  } catch (initErr) {
+    log("INIT ERROR: " + initErr.message);
+  }
+</script>
+
+</body>
+</html>
