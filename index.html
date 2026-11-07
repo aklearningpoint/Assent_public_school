@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assent Public School</title>
+  <title>Assent Public School - Management Portal</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase Compat SDKs (Offline Persistence Compatible) -->
+  <!-- Firebase v9 Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
@@ -25,7 +25,7 @@
     
     <div class="header-actions">
       <span class="status-indicator" id="netStatus">🟢 Online</span>
-      <!-- Setting / Hamburger Icon for Admin Drawer -->
+      <!-- Admin Drawer Setting Icon -->
       <button class="icon-btn" id="openSettingsBtn" title="Admin Settings">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -35,22 +35,33 @@
     </div>
   </header>
 
-  <!-- Dual Switcher: Sirf 2 Mukhya Tabs -->
-  <div class="portal-switcher">
-    <button class="portal-tab active" id="tabStudentBtn" onclick="switchPortal('student')">
-      <span class="tab-icon">👨‍🎓</span> Student Portal
-    </button>
-    <button class="portal-tab" id="tabTeacherBtn" onclick="switchPortal('teacher')">
-      <span class="tab-icon">👨‍🏫</span> Teachers Portal
-    </button>
-  </div>
+  <!-- ================= SCREEN 1: DUAL CARDS HOME SCREEN ================= -->
+  <section id="portalHomeScreen" class="portal-home-grid">
+    <div class="portal-card" onclick="openStudentPortal()">
+      <div class="portal-icon">👨‍🎓</div>
+      <h2>Student Portal</h2>
+      <p>Check examination results, term scorecards, admit cards, and enrollment profile.</p>
+      <button class="btn btn-outline">Access Student Portal &rarr;</button>
+    </div>
 
-  <!-- ================= 1. STUDENT PORTAL VIEW ================= -->
-  <main id="studentPortalView" class="portal-view active">
-    <!-- Quick Search / Lookup -->
-    <div class="hero-lookup card">
-      <h2>Student Lookup & Scorecard</h2>
-      <p class="muted-text">Apna class aur roll number daal kar result, admit card aur profile dekhein.</p>
+    <div class="portal-card" onclick="promptTeacherLogin()">
+      <div class="portal-icon">👨‍🏫</div>
+      <h2>Teacher Portal</h2>
+      <p>Secure portal for daily attendance marking, subject-wise marks entry, and class evaluation.</p>
+      <button class="btn btn-outline">Access Teacher Portal &rarr;</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 2: STUDENT PORTAL VIEW ================= -->
+  <section id="studentPortalView" class="view-panel" style="display: none;">
+    <div class="nav-back-row">
+      <button class="btn btn-secondary" onclick="navigateHome()">&larr; Back to Main Portals</button>
+      <h3>Student Performance & Information Portal</h3>
+    </div>
+
+    <div class="card">
+      <h3>Student Roll Lookup</h3>
+      <p class="muted-text">Select your enrolled class and enter your roll number manually to view your complete records.</p>
       
       <div class="lookup-grid">
         <div class="form-group">
@@ -69,33 +80,35 @@
         </div>
         <div class="form-group">
           <label>Roll Number</label>
-          <input type="number" id="lookupRoll" placeholder="e.g. 5" min="1">
+          <input type="number" id="lookupRoll" placeholder="e.g. 1" min="1" autocomplete="off">
         </div>
-        <button class="btn btn-primary" onclick="lookupStudent()">🔍 View Details</button>
+        <button class="btn btn-primary" id="btnSearchStudent">Search Records</button>
       </div>
     </div>
 
-    <!-- Student Result/Profile Display Card (Dynamic) -->
-    <div id="studentProfileCard" class="card" style="display: none;">
-      <!-- JavaScript will inject scorecard/profile details here -->
-    </div>
-  </main>
+    <!-- Student Detail & Scorecard Output Container -->
+    <div id="studentDetailContainer" class="card" style="display: none;"></div>
+  </section>
 
-  <!-- ================= 2. TEACHERS PORTAL VIEW ================= -->
-  <main id="teacherPortalView" class="portal-view">
-    <!-- Sub-navigation for Teachers -->
+  <!-- ================= SCREEN 3: TEACHER PORTAL VIEW ================= -->
+  <section id="teacherPortalView" class="view-panel" style="display: none;">
+    <div class="nav-back-row">
+      <button class="btn btn-secondary" onclick="navigateHome()">&larr; Back to Main Portals</button>
+      <h3>Faculty Workspace</h3>
+    </div>
+
     <div class="sub-nav">
-      <button class="sub-pill active" onclick="switchTeacherSection('secMarks', this)">📝 Marks Entry</button>
-      <button class="sub-pill" onclick="switchTeacherSection('secAttendance', this)">📅 Attendance</button>
+      <button class="sub-pill active" onclick="switchTeacherSection('secMarks', this)">Marks Entry Engine</button>
+      <button class="sub-pill" onclick="switchTeacherSection('secAttendance', this)">Daily Attendance</button>
     </div>
 
-    <!-- Teacher: Marks Entry Section -->
-    <section id="secMarks" class="teacher-section active">
+    <!-- Section A: Marks Engine -->
+    <div id="secMarks" class="teacher-tab-section active">
       <div class="card">
         <div class="mode-bar">
           <label><b>Entry Mode:</b></label>
-          <button class="btn-toggle active" id="btnModeStudent" onclick="setMarksMode('student')">Student-wise (Save & Next)</button>
-          <button class="btn-toggle" id="btnModeSubject" onclick="setMarksMode('subject')">Bulk Subject Sheet</button>
+          <button class="btn-toggle active" id="btnModeStudent" onclick="setTeacherMarksMode('student')">Student-wise (Save & Next)</button>
+          <button class="btn-toggle" id="btnModeSubject" onclick="setTeacherMarksMode('subject')">Bulk Subject Sheet</button>
         </div>
 
         <div class="grid-two">
@@ -114,7 +127,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Exam Term</label>
+            <label>Examination Term</label>
             <select id="teacherTermSelect">
               <option value="Term 1" selected>Term 1 (Half Yearly)</option>
               <option value="Term 2">Term 2</option>
@@ -126,19 +139,19 @@
 
       <!-- Mode A: Single Student -->
       <div id="teacherStudentWiseCard" class="card">
-        <div class="student-picker">
+        <div class="picker-row">
           <label>Select Student:</label>
           <select id="teacherStudentSelect"></select>
         </div>
         <div id="teacherMarksGrid" class="marks-input-grid"></div>
         <div class="btn-right">
-          <button class="btn btn-success" id="btnTeacherSaveNext">💾 Save & Next Student</button>
+          <button class="btn btn-success" id="btnTeacherSaveNext">Save & Next Student</button>
         </div>
       </div>
 
       <!-- Mode B: Bulk Sheet -->
       <div id="teacherSubjectWiseCard" class="card" style="display: none;">
-        <div class="student-picker">
+        <div class="picker-row">
           <label>Select Subject:</label>
           <select id="teacherSubjectSelect"></select>
         </div>
@@ -146,22 +159,22 @@
           <table>
             <thead>
               <tr>
-                <th style="width: 70px;">Roll</th>
-                <th>Name</th>
-                <th style="width: 130px;">Marks (Max 100)</th>
+                <th style="width: 80px;">Roll No</th>
+                <th>Student Name</th>
+                <th style="width: 140px;">Marks (Max 100)</th>
               </tr>
             </thead>
             <tbody id="teacherBulkTableBody"></tbody>
           </table>
         </div>
         <div class="btn-right">
-          <button class="btn btn-success" id="btnTeacherSaveBulk">💾 Save Bulk Marks</button>
+          <button class="btn btn-success" id="btnTeacherSaveBulk">Save All Marks</button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Teacher: Attendance Section -->
-    <section id="secAttendance" class="teacher-section">
+    <!-- Section B: Attendance -->
+    <div id="secAttendance" class="teacher-tab-section" style="display: none;">
       <div class="card">
         <div class="grid-two">
           <div class="form-group">
@@ -182,41 +195,61 @@
           <table>
             <thead>
               <tr>
-                <th>Roll</th>
+                <th style="width: 80px;">Roll</th>
                 <th>Student Name</th>
-                <th>Status (P / A / L)</th>
+                <th style="width: 140px;">Attendance Status</th>
               </tr>
             </thead>
-            <tbody id="attendanceTableBody">
-              <tr><td colspan="3" class="empty-state">Select class and date to mark attendance.</td></tr>
-            </tbody>
+            <tbody id="attendanceTableBody"></tbody>
           </table>
         </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 </div>
 
-<!-- ================= 3. ADMIN SETTING DRAWER (⚙️ POPUP / MODAL) ================= -->
+<!-- ================= MODAL: TEACHER PASSWORD VERIFICATION ================= -->
+<div id="teacherAuthModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Faculty Authentication</h3>
+      <button class="close-btn" onclick="closeTeacherModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="muted-text">Please enter the faculty password to proceed:</p>
+      
+      <!-- Anti-Autofill protection to prevent browser credentials popup -->
+      <input type="text" style="display:none">
+      <input type="password" style="display:none">
+      <input type="password" id="teacherPassInput" class="pin-input" placeholder="Enter Password" autocomplete="new-password" spellcheck="false">
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeTeacherModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="verifyTeacherPassword()">Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: ADMIN SETTING DRAWER ================= -->
 <div id="adminDrawerModal" class="modal-backdrop">
   <div class="drawer-panel">
     <div class="drawer-header">
-      <h3>⚙️ Admin Management Console</h3>
+      <h3>Admin Management Console</h3>
       <button class="close-btn" id="closeSettingsBtn">&times;</button>
     </div>
 
-    <!-- PIN Protection Screen -->
+    <!-- Admin PIN Lock -->
     <div id="adminAuthLock" class="drawer-body">
-      <p class="muted-text">Security PIN darj karein to access administrative tools:</p>
-      <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: 1234)" class="pin-input">
-      <button class="btn btn-primary" onclick="verifyAdminPin()">Unlock Admin</button>
+      <p class="muted-text">Enter security PIN for administrative actions:</p>
+      <input type="password" id="adminPinInput" placeholder="Enter PIN" class="pin-input" autocomplete="new-password">
+      <button class="btn btn-primary" onclick="verifyAdminPin()">Unlock Console</button>
     </div>
 
-    <!-- Unlocked Admin Controls -->
+    <!-- Admin Controls -->
     <div id="adminControlPanel" class="drawer-body" style="display: none;">
-      <!-- Module: Student Enrollment (Auto-Roll + Auto-Shift Delete) -->
       <div class="admin-block">
-        <h4>➕ Quick Student Enrollment</h4>
+        <h4>Enroll New Student (Auto-Roll)</h4>
         <form id="adminAddStudentForm" class="grid-three">
           <select id="adminNewClass" required>
             <option value="Play">Play</option>
@@ -229,15 +262,14 @@
             <option value="Class 4">Class 4</option>
             <option value="Class 5" selected>Class 5</option>
           </select>
-          <input type="text" id="adminNewName" placeholder="STUDENT FULL NAME" required>
-          <button type="submit" class="btn btn-primary">Add Student</button>
+          <input type="text" id="adminNewName" placeholder="STUDENT FULL NAME" required autocomplete="off">
+          <button type="submit" class="btn btn-primary">Enroll</button>
         </form>
       </div>
 
-      <!-- Module: Manage Roster & Delete -->
       <div class="admin-block">
         <div class="flex-between">
-          <h4>📋 Manage Class Roster & Rolls</h4>
+          <h4>Manage Roster (Auto-Shift on Delete)</h4>
           <select id="adminManageClassSelect">
             <option value="Play">Play</option>
             <option value="Class 5" selected>Class 5</option>
@@ -257,16 +289,15 @@
         </div>
       </div>
 
-      <!-- Module: Fee Status Ledger -->
       <div class="admin-block">
-        <h4>💳 Monthly Fee Ledger</h4>
+        <h4>Tuition Fee Status</h4>
         <div class="table-responsive small-table">
           <table>
             <thead>
               <tr>
                 <th>Roll</th>
                 <th>Name</th>
-                <th>Monthly</th>
+                <th>Fee</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -278,6 +309,8 @@
   </div>
 </div>
 
+<!-- Scripts (Modular Setup) -->
 <script src="js/app.js"></script>
+<script src="js/student.js"></script>
 </body>
 </html>
