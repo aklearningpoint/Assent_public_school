@@ -1,13 +1,15 @@
 :root {
   --primary: #1e3a8a;
   --primary-light: #2563eb;
+  --secondary: #0f172a;
+  --accent: #f59e0b;
   --success: #16a34a;
   --danger: #dc2626;
-  --warning: #f59e0b;
   --bg: #f8fafc;
-  --surface: #ffffff;
-  --border: #cbd5e1;
-  --text: #0f172a;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
 }
 
 * {
@@ -19,118 +21,173 @@
 
 body {
   background: var(--bg);
-  color: var(--text);
+  color: var(--text-main);
   padding: 12px;
 }
 
-.app-shell {
-  max-width: 1020px;
+.app-container {
+  max-width: 960px;
   margin: 0 auto;
 }
 
-/* Top Branding Header */
-.topbar {
-  background: var(--primary);
-  color: white;
-  padding: 16px 20px;
-  border-radius: 8px 8px 0 0;
+/* Dynamic Top Header */
+.app-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
 }
 
-.school-brand h1 {
-  font-size: 1.35rem;
+.school-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.school-logo-badge {
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 900;
+  font-size: 1.1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.school-title {
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  line-height: 1.2;
 }
 
-.sub-brand {
-  font-size: 0.8rem;
-  color: #93c5fd;
-  display: block;
+.school-subtitle {
+  font-size: 0.78rem;
+  color: #bfdbfe;
   margin-top: 2px;
 }
 
-.net-pill {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-indicator {
   background: #166534;
   color: #bbf7d0;
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
-  white-space: nowrap;
 }
 
-/* Modular Navigation Bar */
-.nav-tabs {
+.icon-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
   display: flex;
-  background: #e2e8f0;
-  border-bottom: 2px solid var(--border);
-  overflow-x: auto;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 12px 14px;
-  background: none;
-  border: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
-.tab-btn.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dual Portal Switcher Tabs */
+.portal-switcher {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.portal-tab {
+  flex: 1;
   background: #ffffff;
+  border: 2px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
-/* Tab Containers */
-.tab-content {
+.portal-tab .tab-icon {
+  font-size: 1.3rem;
+}
+
+.portal-tab.active {
+  background: #eff6ff;
+  border-color: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+}
+
+/* Viewport Views */
+.portal-view {
   display: none;
-  padding-top: 16px;
 }
 
-.tab-content.active {
+.portal-view.active {
   display: block;
 }
 
-/* Cards & UI Blocks */
+/* Cards & Generic Layout */
 .card {
-  background: var(--surface);
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: 10px;
   padding: 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin-bottom: 4px;
 }
 
 .card h3 {
   font-size: 1.05rem;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.muted-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
   margin-bottom: 14px;
-  color: var(--primary);
 }
 
-/* Forms & Inputs */
-.grid-form {
-  display: grid;
-  grid-template-columns: 1fr 2fr auto;
-  gap: 12px;
-  align-items: end;
-}
-
-.field {
+/* Forms & Fields */
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.field label {
+.form-group label {
   font-size: 0.8rem;
   font-weight: 600;
   color: #334155;
@@ -139,7 +196,7 @@ body {
 input, select {
   padding: 9px 12px;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
   background: #ffffff;
@@ -150,11 +207,31 @@ input:focus, select:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
+.lookup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.grid-three {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
 /* Buttons */
 .btn {
   padding: 9px 16px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
@@ -162,7 +239,7 @@ input:focus, select:focus {
 }
 
 .btn:hover {
-  opacity: 0.92;
+  opacity: 0.9;
 }
 
 .btn-primary {
@@ -186,40 +263,46 @@ input:focus, select:focus {
   color: #ffffff;
 }
 
-/* Headers & Controls */
-.filter-header {
+.btn-right {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* Teacher Sub Navigation Pills */
+.sub-nav {
+  display: flex;
+  gap: 8px;
   margin-bottom: 14px;
-  flex-wrap: wrap;
 }
 
-.field-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.sub-pill {
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
 }
 
-.filter-group-inline {
-  display: flex;
-  gap: 8px;
+.sub-pill.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
 }
 
-.filter-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+.teacher-section {
+  display: none;
 }
 
-.filter-row .field {
-  flex: 1;
-  min-width: 140px;
+.teacher-section.active {
+  display: block;
 }
 
-/* Marks Workflow Switcher */
-.entry-mode-switch {
+/* Mode Bar (Student vs Bulk) */
+.mode-bar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -229,8 +312,8 @@ input:focus, select:focus {
   flex-wrap: wrap;
 }
 
-.mode-toggle {
-  padding: 7px 14px;
+.btn-toggle {
+  padding: 7px 12px;
   border: 1px solid var(--border);
   background: #f8fafc;
   cursor: pointer;
@@ -239,40 +322,37 @@ input:focus, select:focus {
   font-size: 0.8rem;
 }
 
-.mode-toggle.active {
+.btn-toggle.active {
   background: var(--primary);
   color: #ffffff;
   border-color: var(--primary);
 }
 
-.student-select-bar {
-  margin-bottom: 16px;
+.student-picker {
   display: flex;
-  gap: 10px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.student-select-bar select {
+.student-picker select {
   flex: 1;
 }
 
-/* Marks Grid */
-.marks-grid {
+.marks-input-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
 }
 
-.mark-card {
+.mark-box {
   background: #f8fafc;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
-.mark-card label {
+.mark-box label {
   display: block;
   font-size: 0.85rem;
   font-weight: 700;
@@ -281,7 +361,7 @@ input:focus, select:focus {
 }
 
 /* Tables */
-.table-wrap {
+.table-responsive {
   overflow-x: auto;
 }
 
@@ -311,39 +391,114 @@ th {
   font-weight: 700;
 }
 
-.badge-rank {
-  background: #f59e0b;
-  color: #ffffff;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 700;
-}
-
 .empty-state {
   text-align: center;
   color: #94a3b8;
-  padding: 24px;
+  padding: 20px;
 }
 
-.action-footer {
-  display: flex;
+/* ================= ADMIN DRAWER / MODAL ================= */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
   justify-content: flex-end;
-  margin-top: 14px;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.drawer-panel {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  overflow-y: auto;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  background: var(--secondary);
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-header h3 {
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.drawer-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pin-input {
+  font-size: 1.2rem;
+  text-align: center;
+  letter-spacing: 4px;
+}
+
+.admin-block {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.admin-block h4 {
+  font-size: 0.92rem;
+  margin-bottom: 10px;
+  color: var(--primary);
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.small-table th, .small-table td {
+  padding: 6px 8px;
+  font-size: 0.8rem;
 }
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
-  .grid-form {
+  .lookup-grid {
     grid-template-columns: 1fr;
   }
-  .filter-header {
-    flex-direction: column;
-    align-items: stretch;
+  .grid-two {
+    grid-template-columns: 1fr;
   }
-  .filter-group-inline {
-    width: 100%;
+  .grid-three {
+    grid-template-columns: 1fr;
   }
-  .filter-group-inline select {
-    flex: 1;
+  .portal-tab {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+  .school-title {
+    font-size: 1.05rem;
   }
 }
