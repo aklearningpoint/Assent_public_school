@@ -3,43 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assent Public School - Management Portal</title>
+  <title>Assent Public School</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase v9 Compat SDKs (Offline & Fast CDN) -->
+  <!-- Firebase Compat SDKs (Offline Persistence Compatible) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<div class="app-shell">
-  <!-- Top Branding Header -->
-  <header class="topbar">
-    <div class="school-brand">
-      <h1>Assent Public School</h1>
-      <span class="sub-brand">Student Management & Examination Portal</span>
+<div class="app-container">
+  <!-- Top Dynamic Header -->
+  <header class="app-header">
+    <div class="school-identity">
+      <div class="school-logo-badge">APS</div>
+      <div>
+        <h1 class="school-title">Assent Public School</h1>
+        <p class="school-subtitle">Institutional Management & Examination Portal</p>
+      </div>
     </div>
-    <div class="header-right">
-      <span class="net-pill" id="globalStatus">🟢 Connecting...</span>
+    
+    <div class="header-actions">
+      <span class="status-indicator" id="netStatus">🟢 Online</span>
+      <!-- Setting / Hamburger Icon for Admin Drawer -->
+      <button class="icon-btn" id="openSettingsBtn" title="Admin Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <!-- Modular Navigation Bar -->
-  <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('tabStudents', this)">👨‍🎓 Student Directory</button>
-    <button class="tab-btn" onclick="switchTab('tabMarks', this)">📝 Dual Marks Entry</button>
-    <button class="tab-btn" onclick="switchTab('tabScorecard', this)">📊 Scorecard & Ranks</button>
-    <button class="tab-btn" onclick="switchTab('tabFees', this)">💳 Fee Ledger</button>
-  </nav>
+  <!-- Dual Switcher: Sirf 2 Mukhya Tabs -->
+  <div class="portal-switcher">
+    <button class="portal-tab active" id="tabStudentBtn" onclick="switchPortal('student')">
+      <span class="tab-icon">👨‍🎓</span> Student Portal
+    </button>
+    <button class="portal-tab" id="tabTeacherBtn" onclick="switchPortal('teacher')">
+      <span class="tab-icon">👨‍🏫</span> Teachers Portal
+    </button>
+  </div>
 
-  <!-- ================= MODULE 1: STUDENT DIRECTORY ================= -->
-  <section id="tabStudents" class="tab-content active">
-    <div class="card">
-      <h3>Quick Enrollment (Auto Roll No)</h3>
-      <form id="addStudentForm" class="grid-form">
-        <div class="field">
+  <!-- ================= 1. STUDENT PORTAL VIEW ================= -->
+  <main id="studentPortalView" class="portal-view active">
+    <!-- Quick Search / Lookup -->
+    <div class="hero-lookup card">
+      <h2>Student Lookup & Scorecard</h2>
+      <p class="muted-text">Apna class aur roll number daal kar result, admit card aur profile dekhein.</p>
+      
+      <div class="lookup-grid">
+        <div class="form-group">
           <label>Class</label>
-          <select id="studentClass" required>
+          <select id="lookupClass">
             <option value="Play">Play</option>
             <option value="Nursery">Nursery</option>
             <option value="LKG">LKG</option>
@@ -51,202 +67,217 @@
             <option value="Class 5" selected>Class 5</option>
           </select>
         </div>
-        <div class="field">
-          <label>Student Full Name</label>
-          <input type="text" id="studentName" placeholder="e.g. AMAN KUMAR" required autocomplete="off">
+        <div class="form-group">
+          <label>Roll Number</label>
+          <input type="number" id="lookupRoll" placeholder="e.g. 5" min="1">
         </div>
-        <button type="submit" class="btn btn-primary">➕ Enroll Student</button>
-      </form>
-    </div>
-
-    <div class="card">
-      <div class="filter-header">
-        <h3>Class Roster</h3>
-        <div class="field-inline">
-          <label>Filter Class:</label>
-          <select id="filterStudentClass">
-            <option value="Play">Play</option>
-            <option value="Nursery">Nursery</option>
-            <option value="LKG">LKG</option>
-            <option value="UKG">UKG</option>
-            <option value="Class 1">Class 1</option>
-            <option value="Class 2">Class 2</option>
-            <option value="Class 3">Class 3</option>
-            <option value="Class 4">Class 4</option>
-            <option value="Class 5" selected>Class 5</option>
-          </select>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 70px;">Roll No</th>
-              <th>Student Name</th>
-              <th>Status</th>
-              <th style="width: 110px; text-align: center;">Action</th>
-            </tr>
-          </thead>
-          <tbody id="studentTableBody">
-            <tr><td colspan="4" class="empty-state">Loading students...</td></tr>
-          </tbody>
-        </table>
+        <button class="btn btn-primary" onclick="lookupStudent()">🔍 View Details</button>
       </div>
     </div>
-  </section>
 
-  <!-- ================= MODULE 2: DUAL MARKS ENTRY ================= -->
-  <section id="tabMarks" class="tab-content">
-    <div class="card">
-      <div class="entry-mode-switch">
-        <label><b>Entry Workflow:</b></label>
-        <button type="button" class="mode-toggle active" id="btnModeStudent" onclick="setMarksMode('student')">Single Student-wise (Save & Next)</button>
-        <button type="button" class="mode-toggle" id="btnModeSubject" onclick="setMarksMode('subject')">Bulk Subject Sheet</button>
-      </div>
+    <!-- Student Result/Profile Display Card (Dynamic) -->
+    <div id="studentProfileCard" class="card" style="display: none;">
+      <!-- JavaScript will inject scorecard/profile details here -->
+    </div>
+  </main>
 
-      <div class="filter-row">
-        <div class="field">
-          <label>Class</label>
-          <select id="marksClassSelect">
-            <option value="Play">Play</option>
-            <option value="Nursery">Nursery</option>
-            <option value="LKG">LKG</option>
-            <option value="UKG">UKG</option>
-            <option value="Class 1">Class 1</option>
-            <option value="Class 2">Class 2</option>
-            <option value="Class 3">Class 3</option>
-            <option value="Class 4">Class 4</option>
-            <option value="Class 5" selected>Class 5</option>
-          </select>
+  <!-- ================= 2. TEACHERS PORTAL VIEW ================= -->
+  <main id="teacherPortalView" class="portal-view">
+    <!-- Sub-navigation for Teachers -->
+    <div class="sub-nav">
+      <button class="sub-pill active" onclick="switchTeacherSection('secMarks', this)">📝 Marks Entry</button>
+      <button class="sub-pill" onclick="switchTeacherSection('secAttendance', this)">📅 Attendance</button>
+    </div>
+
+    <!-- Teacher: Marks Entry Section -->
+    <section id="secMarks" class="teacher-section active">
+      <div class="card">
+        <div class="mode-bar">
+          <label><b>Entry Mode:</b></label>
+          <button class="btn-toggle active" id="btnModeStudent" onclick="setMarksMode('student')">Student-wise (Save & Next)</button>
+          <button class="btn-toggle" id="btnModeSubject" onclick="setMarksMode('subject')">Bulk Subject Sheet</button>
         </div>
-        <div class="field">
-          <label>Examination Term</label>
-          <select id="marksTermSelect">
-            <option value="Term 1" selected>Term 1 (Half Yearly)</option>
-            <option value="Term 2">Term 2</option>
-            <option value="Term 3">Term 3 (Annual)</option>
-          </select>
+
+        <div class="grid-two">
+          <div class="form-group">
+            <label>Class</label>
+            <select id="teacherClassSelect">
+              <option value="Play">Play</option>
+              <option value="Nursery">Nursery</option>
+              <option value="LKG">LKG</option>
+              <option value="UKG">UKG</option>
+              <option value="Class 1">Class 1</option>
+              <option value="Class 2">Class 2</option>
+              <option value="Class 3">Class 3</option>
+              <option value="Class 4">Class 4</option>
+              <option value="Class 5" selected>Class 5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Exam Term</label>
+            <select id="teacherTermSelect">
+              <option value="Term 1" selected>Term 1 (Half Yearly)</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3 (Annual)</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Mode A: Single Student Wise -->
-    <div id="studentWiseContainer" class="card">
-      <div class="student-select-bar">
-        <label>Select Student:</label>
-        <select id="marksStudentSelect"></select>
-      </div>
-      <div id="studentMarksFields" class="marks-grid"></div>
-      <div class="action-footer">
-        <button type="button" class="btn btn-success" id="btnSaveStudentMarks">💾 Save & Next Student</button>
-      </div>
-    </div>
-
-    <!-- Mode B: Bulk Class Sheet -->
-    <div id="subjectWiseContainer" class="card" style="display: none;">
-      <div class="student-select-bar">
-        <label>Select Subject to Fill:</label>
-        <select id="bulkSubjectSelect"></select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 80px;">Roll No</th>
-              <th>Student Name</th>
-              <th style="width: 140px;">Marks (Max 100)</th>
-            </tr>
-          </thead>
-          <tbody id="bulkMarksTableBody"></tbody>
-        </table>
-      </div>
-      <div class="action-footer">
-        <button type="button" class="btn btn-success" id="btnSaveBulkMarks">💾 Save All Marks</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= MODULE 3: SCORECARD & RANKS ================= -->
-  <section id="tabScorecard" class="tab-content">
-    <div class="card">
-      <div class="filter-header">
-        <h3>Class Rank & Merit Matrix</h3>
-        <div class="filter-group-inline">
-          <select id="scoreClassSelect">
-            <option value="Play">Play</option>
-            <option value="Nursery">Nursery</option>
-            <option value="LKG">LKG</option>
-            <option value="UKG">UKG</option>
-            <option value="Class 1">Class 1</option>
-            <option value="Class 2">Class 2</option>
-            <option value="Class 3">Class 3</option>
-            <option value="Class 4">Class 4</option>
-            <option value="Class 5" selected>Class 5</option>
-          </select>
-          <select id="scoreTermSelect">
-            <option value="Term 1" selected>Term 1</option>
-            <option value="Term 2">Term 2</option>
-            <option value="Term 3">Term 3</option>
-          </select>
+      <!-- Mode A: Single Student -->
+      <div id="teacherStudentWiseCard" class="card">
+        <div class="student-picker">
+          <label>Select Student:</label>
+          <select id="teacherStudentSelect"></select>
+        </div>
+        <div id="teacherMarksGrid" class="marks-input-grid"></div>
+        <div class="btn-right">
+          <button class="btn btn-success" id="btnTeacherSaveNext">💾 Save & Next Student</button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 60px;">Rank</th>
-              <th style="width: 70px;">Roll</th>
-              <th>Student Name</th>
-              <th>Marks</th>
-              <th>Percentage</th>
-              <th>Grade</th>
-              <th style="width: 90px; text-align: center;">Print</th>
-            </tr>
-          </thead>
-          <tbody id="scoreTableBody">
-            <tr><td colspan="7" class="empty-state">Select Class to compute ranks...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
 
-  <!-- ================= MODULE 4: FEE LEDGER ================= -->
-  <section id="tabFees" class="tab-content">
-    <div class="card">
-      <div class="filter-header">
-        <h3>Tuition & Dues Tracking</h3>
-        <select id="feeClassSelect">
-          <option value="Play">Play</option>
-          <option value="Nursery">Nursery</option>
-          <option value="LKG">LKG</option>
-          <option value="UKG">UKG</option>
-          <option value="Class 1">Class 1</option>
-          <option value="Class 2">Class 2</option>
-          <option value="Class 3">Class 3</option>
-          <option value="Class 4">Class 4</option>
-          <option value="Class 5" selected>Class 5</option>
-        </select>
+      <!-- Mode B: Bulk Sheet -->
+      <div id="teacherSubjectWiseCard" class="card" style="display: none;">
+        <div class="student-picker">
+          <label>Select Subject:</label>
+          <select id="teacherSubjectSelect"></select>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 70px;">Roll</th>
+                <th>Name</th>
+                <th style="width: 130px;">Marks (Max 100)</th>
+              </tr>
+            </thead>
+            <tbody id="teacherBulkTableBody"></tbody>
+          </table>
+        </div>
+        <div class="btn-right">
+          <button class="btn btn-success" id="btnTeacherSaveBulk">💾 Save Bulk Marks</button>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 70px;">Roll</th>
-              <th>Student Name</th>
-              <th>Monthly Fee</th>
-              <th>Payment Status</th>
-              <th style="width: 140px; text-align: center;">Toggle Status</th>
-            </tr>
-          </thead>
-          <tbody id="feeTableBody"></tbody>
-        </table>
+    </section>
+
+    <!-- Teacher: Attendance Section -->
+    <section id="secAttendance" class="teacher-section">
+      <div class="card">
+        <div class="grid-two">
+          <div class="form-group">
+            <label>Class</label>
+            <select id="attClassSelect">
+              <option value="Play">Play</option>
+              <option value="Class 5" selected>Class 5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="attDateSelect">
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+      <div class="card">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Roll</th>
+                <th>Student Name</th>
+                <th>Status (P / A / L)</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTableBody">
+              <tr><td colspan="3" class="empty-state">Select class and date to mark attendance.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 
-<!-- Main Script File -->
+<!-- ================= 3. ADMIN SETTING DRAWER (⚙️ POPUP / MODAL) ================= -->
+<div id="adminDrawerModal" class="modal-backdrop">
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <h3>⚙️ Admin Management Console</h3>
+      <button class="close-btn" id="closeSettingsBtn">&times;</button>
+    </div>
+
+    <!-- PIN Protection Screen -->
+    <div id="adminAuthLock" class="drawer-body">
+      <p class="muted-text">Security PIN darj karein to access administrative tools:</p>
+      <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: 1234)" class="pin-input">
+      <button class="btn btn-primary" onclick="verifyAdminPin()">Unlock Admin</button>
+    </div>
+
+    <!-- Unlocked Admin Controls -->
+    <div id="adminControlPanel" class="drawer-body" style="display: none;">
+      <!-- Module: Student Enrollment (Auto-Roll + Auto-Shift Delete) -->
+      <div class="admin-block">
+        <h4>➕ Quick Student Enrollment</h4>
+        <form id="adminAddStudentForm" class="grid-three">
+          <select id="adminNewClass" required>
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
+            <option value="LKG">LKG</option>
+            <option value="UKG">UKG</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option>
+            <option value="Class 4">Class 4</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+          <input type="text" id="adminNewName" placeholder="STUDENT FULL NAME" required>
+          <button type="submit" class="btn btn-primary">Add Student</button>
+        </form>
+      </div>
+
+      <!-- Module: Manage Roster & Delete -->
+      <div class="admin-block">
+        <div class="flex-between">
+          <h4>📋 Manage Class Roster & Rolls</h4>
+          <select id="adminManageClassSelect">
+            <option value="Play">Play</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+        </div>
+        <div class="table-responsive small-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminStudentList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Module: Fee Status Ledger -->
+      <div class="admin-block">
+        <h4>💳 Monthly Fee Ledger</h4>
+        <div class="table-responsive small-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                <th>Monthly</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminFeeList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="js/app.js"></script>
 </body>
 </html>
