@@ -3,92 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assent Public School - Student Master</title>
-  <style>
-    :root { --primary: #1e3a8a; --danger: #dc2626; --bg: #f8fafc; --border: #cbd5e1; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: #1e293b; padding: 16px; }
-    .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--primary); padding-bottom: 12px; margin-bottom: 20px; }
-    .header h2 { color: var(--primary); font-size: 1.25rem; }
-    .net-badge { font-size: 0.8rem; background: #e0e7ff; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .quick-form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; background: #eff6ff; padding: 14px; border-radius: 6px; margin-bottom: 20px; align-items: end; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-    select, input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; }
-    button.btn-add { background: var(--primary); color: #fff; border: none; padding: 9px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    th { background: #f1f5f9; color: #475569; }
-    .badge-roll { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
-    .btn-del { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-    .empty { text-align: center; color: #94a3b8; padding: 20px; }
-  </style>
+  <title>Assent Public School - Management Portal</title>
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase Compat Scripts -->
+  <!-- Firebase v9 Compat SDKs (Offline & Fast CDN) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
-    <h2>Assent Public School - Student Directory</h2>
-    <span class="net-badge" id="syncStatus">🟢 System Ready</span>
-  </div>
-
-  <form id="addStudentForm" class="quick-form">
-    <div class="form-group">
-      <label>Class</label>
-      <select id="studentClass" required>
-        <option value="Play">Play</option>
-        <option value="Nursery">Nursery</option>
-        <option value="LKG">LKG</option>
-        <option value="UKG">UKG</option>
-        <option value="Class 1">Class 1</option>
-        <option value="Class 2">Class 2</option>
-        <option value="Class 3">Class 3</option>
-        <option value="Class 4">Class 4</option>
-        <option value="Class 5" selected>Class 5</option>
-      </select>
+<div class="app-shell">
+  <!-- Top Branding Header -->
+  <header class="topbar">
+    <div class="school-brand">
+      <h1>Assent Public School</h1>
+      <span class="sub-brand">Student Management & Examination Portal</span>
     </div>
-    <div class="form-group">
-      <label>Student Full Name</label>
-      <input type="text" id="studentName" placeholder="e.g. Aman Kumar" required autocomplete="off">
+    <div class="header-right">
+      <span class="net-pill" id="globalStatus">🟢 Connecting...</span>
     </div>
-    <button type="submit" class="btn-add">➕ Add Student</button>
-  </form>
+  </header>
 
-  <div class="filter-bar">
-    <label><b>View Class List:</b></label>
-    <select id="filterClass" style="width: auto;">
-      <option value="Play">Play</option>
-      <option value="Nursery">Nursery</option>
-      <option value="LKG">LKG</option>
-      <option value="UKG">UKG</option>
-      <option value="Class 1">Class 1</option>
-      <option value="Class 2">Class 2</option>
-      <option value="Class 3">Class 3</option>
-      <option value="Class 4">Class 4</option>
-      <option value="Class 5" selected>Class 5</option>
-    </select>
-  </div>
+  <!-- Modular Navigation Bar -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tabStudents', this)">👨‍🎓 Student Directory</button>
+    <button class="tab-btn" onclick="switchTab('tabMarks', this)">📝 Dual Marks Entry</button>
+    <button class="tab-btn" onclick="switchTab('tabScorecard', this)">📊 Scorecard & Ranks</button>
+    <button class="tab-btn" onclick="switchTab('tabFees', this)">💳 Fee Ledger</button>
+  </nav>
 
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 70px;">Roll No</th>
-        <th>Student Name</th>
-        <th style="width: 140px;">Status</th>
-        <th style="width: 90px; text-align: center;">Action</th>
-      </tr>
-    </thead>
-    <tbody id="studentTableBody">
-      <tr><td colspan="4" class="empty">Loading list...</td></tr>
-    </tbody>
-  </table>
+  <!-- ================= MODULE 1: STUDENT DIRECTORY ================= -->
+  <section id="tabStudents" class="tab-content active">
+    <div class="card">
+      <h3>Quick Enrollment (Auto Roll No)</h3>
+      <form id="addStudentForm" class="grid-form">
+        <div class="field">
+          <label>Class</label>
+          <select id="studentClass" required>
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
+            <option value="LKG">LKG</option>
+            <option value="UKG">UKG</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option>
+            <option value="Class 4">Class 4</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Student Full Name</label>
+          <input type="text" id="studentName" placeholder="e.g. AMAN KUMAR" required autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary">➕ Enroll Student</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="filter-header">
+        <h3>Class Roster</h3>
+        <div class="field-inline">
+          <label>Filter Class:</label>
+          <select id="filterStudentClass">
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
+            <option value="LKG">LKG</option>
+            <option value="UKG">UKG</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option>
+            <option value="Class 4">Class 4</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 70px;">Roll No</th>
+              <th>Student Name</th>
+              <th>Status</th>
+              <th style="width: 110px; text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            <tr><td colspan="4" class="empty-state">Loading students...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 2: DUAL MARKS ENTRY ================= -->
+  <section id="tabMarks" class="tab-content">
+    <div class="card">
+      <div class="entry-mode-switch">
+        <label><b>Entry Workflow:</b></label>
+        <button type="button" class="mode-toggle active" id="btnModeStudent" onclick="setMarksMode('student')">Single Student-wise (Save & Next)</button>
+        <button type="button" class="mode-toggle" id="btnModeSubject" onclick="setMarksMode('subject')">Bulk Subject Sheet</button>
+      </div>
+
+      <div class="filter-row">
+        <div class="field">
+          <label>Class</label>
+          <select id="marksClassSelect">
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
+            <option value="LKG">LKG</option>
+            <option value="UKG">UKG</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option>
+            <option value="Class 4">Class 4</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Examination Term</label>
+          <select id="marksTermSelect">
+            <option value="Term 1" selected>Term 1 (Half Yearly)</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3 (Annual)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode A: Single Student Wise -->
+    <div id="studentWiseContainer" class="card">
+      <div class="student-select-bar">
+        <label>Select Student:</label>
+        <select id="marksStudentSelect"></select>
+      </div>
+      <div id="studentMarksFields" class="marks-grid"></div>
+      <div class="action-footer">
+        <button type="button" class="btn btn-success" id="btnSaveStudentMarks">💾 Save & Next Student</button>
+      </div>
+    </div>
+
+    <!-- Mode B: Bulk Class Sheet -->
+    <div id="subjectWiseContainer" class="card" style="display: none;">
+      <div class="student-select-bar">
+        <label>Select Subject to Fill:</label>
+        <select id="bulkSubjectSelect"></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">Roll No</th>
+              <th>Student Name</th>
+              <th style="width: 140px;">Marks (Max 100)</th>
+            </tr>
+          </thead>
+          <tbody id="bulkMarksTableBody"></tbody>
+        </table>
+      </div>
+      <div class="action-footer">
+        <button type="button" class="btn btn-success" id="btnSaveBulkMarks">💾 Save All Marks</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 3: SCORECARD & RANKS ================= -->
+  <section id="tabScorecard" class="tab-content">
+    <div class="card">
+      <div class="filter-header">
+        <h3>Class Rank & Merit Matrix</h3>
+        <div class="filter-group-inline">
+          <select id="scoreClassSelect">
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
+            <option value="LKG">LKG</option>
+            <option value="UKG">UKG</option>
+            <option value="Class 1">Class 1</option>
+            <option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option>
+            <option value="Class 4">Class 4</option>
+            <option value="Class 5" selected>Class 5</option>
+          </select>
+          <select id="scoreTermSelect">
+            <option value="Term 1" selected>Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 60px;">Rank</th>
+              <th style="width: 70px;">Roll</th>
+              <th>Student Name</th>
+              <th>Marks</th>
+              <th>Percentage</th>
+              <th>Grade</th>
+              <th style="width: 90px; text-align: center;">Print</th>
+            </tr>
+          </thead>
+          <tbody id="scoreTableBody">
+            <tr><td colspan="7" class="empty-state">Select Class to compute ranks...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 4: FEE LEDGER ================= -->
+  <section id="tabFees" class="tab-content">
+    <div class="card">
+      <div class="filter-header">
+        <h3>Tuition & Dues Tracking</h3>
+        <select id="feeClassSelect">
+          <option value="Play">Play</option>
+          <option value="Nursery">Nursery</option>
+          <option value="LKG">LKG</option>
+          <option value="UKG">UKG</option>
+          <option value="Class 1">Class 1</option>
+          <option value="Class 2">Class 2</option>
+          <option value="Class 3">Class 3</option>
+          <option value="Class 4">Class 4</option>
+          <option value="Class 5" selected>Class 5</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 70px;">Roll</th>
+              <th>Student Name</th>
+              <th>Monthly Fee</th>
+              <th>Payment Status</th>
+              <th style="width: 140px; text-align: center;">Toggle Status</th>
+            </tr>
+          </thead>
+          <tbody id="feeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </div>
 
-<script src="tab1_students.js"></script>
+<!-- Main Script File -->
+<script src="app.js"></script>
 </body>
 </html>
